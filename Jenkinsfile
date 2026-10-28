@@ -1,49 +1,45 @@
-pipeline{
+pipeline {
     agent any
 
-    environment{
-        DOCKER_IMAGE = 'ajaykumar2602/myapp3'
+    environment {
+        DOCKER_IMAGE = 'ajaykumar2602/exp4'
         DOCKER_TAG = 'v1'
     }
 
-    stage{
-        stage('Clone Repository'){
-            steps{
-                git branch:'main', url: 'https://github.com/Ajay00-07/exp4.git'
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Ajay00-07/exp4.git'
             }
         }
 
-        stage('Build Docker Image'){
-            steps{
+        stage('Build Docker Image') {
+            steps {
                 bat 'docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .'
             }
         }
 
-        stage('Docker Login'){
-            steps{
-                withCredentials([usernamePassword(
-                    credentialsId: 'Dockerhub',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]){
-                    bat 'echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin'
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'Dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    bat 'echo %DOCKER_PASSWORD%| docker login -u %DOCKER_USER% --password-stdin'
                 }
             }
         }
 
-        stage('push Docker Image'){
-            steps{
+        stage('Push Docker Image') {
+            steps {
                 bat 'docker push %DOCKER_IMAGE%:%DOCKER_TAG%'
             }
         }
     }
 
-    post{
-        success{
-            echo 'Docker image pushed successfully!'
+    post {
+        success {
+            echo 'Docker image v1 built and pushed successfully!'
         }
-        failure{
-            echo 'Failed to push Docker image!'
+        failure {
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }
